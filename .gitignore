@@ -67,6 +67,7 @@ dist/
 # Claude Flow generated files
 .claude/
 .claude-flow/
+coordination/
 .mcp.json
 claude-flow.config.json
 .swarm/
