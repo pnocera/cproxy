@@ -1,0 +1,29 @@
+# Bun Configuration
+
+[install]
+# Use exact versions for better reproducibility
+exact = true
+# Use npm registry
+registry = "https://registry.npmjs.org/"
+
+[install.cache]
+# Enable caching for faster installs
+dir = ".bun/cache"
+
+[run]
+# Use system shell for better compatibility
+shell = "system"
+
+# Runtime preferences
+[runtime]
+# Prefer bun runtime over Node.js when available
+bun = true
+# Enable JSX by default
+jsx = "automatic"
+
+# Development settings
+[dev]
+# Enable hot reload
+hot = true
+# Better error reporting
+verbose = true

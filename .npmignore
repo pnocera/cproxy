@@ -1,0 +1,49 @@
+# Source files
+src/
+*.ts
+!*.d.ts
+
+# Development files
+.claude/
+.claude-flow/
+memory/
+coordination/
+test-plan.md
+validation_report.md
+CLAUDE.md
+
+# Build artifacts
+executables/
+*.exe
+cproxy-*
+
+# Development tools
+bun.build.config.js
+bunfig.toml
+bun.lockb
+tsconfig.json
+.eslintrc.json
+.nvmrc
+
+# Scripts
+scripts/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Runtime
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,89 @@
+{
+  "name": "cproxy",
+  "description": "A simple proxy server with TypeScript support, optimized for bun.",
+  "version": "1.3.0",
+  "type": "module",
+  "bin": {
+    "cproxy": "dist/index.js"
+  },
+  "pkg": {
+    "scripts": "dist/**/*.js",
+    "assets": [],
+    "targets": [
+      "node18-linux-x64",
+      "node18-macos-x64",
+      "node18-macos-arm64",
+      "node18-win-x64"
+    ],
+    "outputPath": "executables"
+  },
+  "bun": {
+    "build": {
+      "config": "./bun.build.config.js"
+    }
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "prepublishOnly": "npm run clean && npm run build && npm run typecheck",
+    "start": "bun dist/index.js",
+    "dev": "bun --watch src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --format esm --splitting --target node --sourcemap",
+    "build:tsc": "tsc",
+    "build:watch": "bun build src/index.ts --outdir dist --format esm --splitting --target node --sourcemap --watch",
+    "build:exe": "bun build src/index.ts --compile --outfile cproxy",
+    "build:exe:optimized": "bun build src/index.ts --compile --outfile cproxy --minify --sourcemap",
+    "build:exe:linux": "bun build src/index.ts --compile --target=bun-linux-x64 --outfile cproxy-linux",
+    "build:exe:macos": "bun build src/index.ts --compile --target=bun-darwin-x64 --outfile cproxy-macos",
+    "build:exe:windows": "bun build src/index.ts --compile --target=bun-windows-x64 --outfile cproxy-windows.exe",
+    "build:exe:all": "npm run build:exe:linux && npm run build:exe:macos && npm run build:exe:windows",
+    "build:exe:advanced": "bun scripts/build-executables.js",
+    "build:exe:minified": "bun scripts/build-executables.js --minify",
+    "build:exe:debug": "bun scripts/build-executables.js --sourcemap --debug",
+    "build:exe:docker": "./scripts/docker-build.sh",
+    "build:exe:docker:minified": "./scripts/docker-build.sh --minify",
+    "build:bundle": "bun build src/index.ts --target node --format esm --outfile dist/cproxy.bundle.js --minify --sourcemap",
+    "clean": "rm -rf dist executables && rm -f cproxy cproxy-* *.exe",
+    "typecheck": "bunx tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pack": "npm pack --dry-run"
+  },
+  "keywords": [
+    "proxy",
+    "server",
+    "fastify",
+    "typescript",
+    "anthropic",
+    "openai",
+    "api",
+    "bun"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pnocera/cproxy"
+  },
+  "bugs": {
+    "url": "https://github.com/pnocera/cproxy/issues"
+  },
+  "author": "pnocera",
+  "license": "MIT",
+  "dependencies": {
+    "fastify": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
+  "trustedDependencies": [
+    "fastify"
+  ]
+}
