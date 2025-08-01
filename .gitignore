@@ -64,10 +64,9 @@ node_modules/
 dist/
 
 
+
 # Claude Flow generated files
-.claude/
-.claude-flow/
-coordination/
+.claude/settings.local.json
 .mcp.json
 claude-flow.config.json
 .swarm/
