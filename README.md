@@ -18,10 +18,10 @@ A TypeScript proxy server that converts Anthropic Claude API requests to OpenAI-
 
 ```bash
 # Install globally as a CLI tool
-npm install -g cproxy
+npm install -g @pnocera/cproxy
 
 # Or install locally in your project
-npm install cproxy
+npm install @pnocera/cproxy
 ```
 
 ### From Source
@@ -192,7 +192,7 @@ Once installed via npm, use the `cproxy` command:
 cproxy
 
 # Or use npx without global installation
-npx cproxy
+npx @pnocera/cproxy
 ```
 
 The binary is automatically available in your PATH when installed globally.
