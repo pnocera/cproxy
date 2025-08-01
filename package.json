@@ -4,7 +4,7 @@
   "version": "1.3.2",
   "type": "module",
   "bin": {
-    "cproxy": "dist/index.js"
+    "@pnocera/cproxy": "dist/index.js"
   },
   "pkg": {
     "scripts": "dist/**/*.js",
