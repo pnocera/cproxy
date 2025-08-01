@@ -1,0 +1,50 @@
+{
+  "server": {
+    "name": "cproxy-mcp",
+    "version": "1.0.0",
+    "port": 3001,
+    "host": "localhost"
+  },
+  "providers": [
+    {
+      "name": "openai",
+      "baseUrl": "https://api.openai.com",
+      "apiKey": "${OPENAI_API_KEY}",
+      "timeout": 30000,
+      "retries": 2,
+      "enabled": true,
+      "headers": {
+        "User-Agent": "cproxy-mcp/1.0.0"
+      }
+    },
+    {
+      "name": "anthropic",
+      "baseUrl": "https://api.anthropic.com",
+      "apiKey": "${ANTHROPIC_API_KEY}",
+      "timeout": 45000,
+      "retries": 1,
+      "enabled": true
+    },
+    {
+      "name": "local-server",
+      "baseUrl": "http://localhost:8080",
+      "timeout": 10000,
+      "retries": 0,
+      "enabled": false
+    }
+  ],
+  "routing": {
+    "strategy": "round-robin",
+    "fallback": true,
+    "healthCheck": {
+      "enabled": true,
+      "interval": 30000,
+      "timeout": 5000
+    }
+  },
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "file": "./logs/mcp-proxy.log"
+  }
+}

@@ -1,0 +1,297 @@
+{
+  "server": {
+    "name": "Claude Code MCP Proxy",
+    "version": "2.0.0",
+    "description": "MCP proxy server for Claude Code to multiple AI providers",
+    "debug": false,
+    "port": 3000,
+    "host": "localhost"
+  },
+  "providers": [
+    {
+      "id": "openrouter",
+      "name": "OpenRouter",
+      "type": "openrouter",
+      "baseUrl": "https://openrouter.ai/api",
+      "apiKey": "${OPENROUTER_API_KEY}",
+      "models": [
+        "google/gemini-2.0-pro-exp-02-05:free",
+        "google/gemini-pro",
+        "anthropic/claude-3-sonnet",
+        "anthropic/claude-3-opus",
+        "openai/gpt-4",
+        "openai/gpt-4-turbo",
+        "meta-llama/llama-3-70b-instruct"
+      ],
+      "capabilities": {
+        "streaming": true,
+        "tools": true,
+        "reasoning": true,
+        "multimodal": true,
+        "maxTokens": 8192,
+        "contextWindow": 128000
+      },
+      "rateLimits": {
+        "requestsPerMinute": 60,
+        "tokensPerMinute": 50000,
+        "requestsPerDay": 1000,
+        "tokensPerDay": 1000000
+      },
+      "priority": 1,
+      "weight": 1.0,
+      "healthCheck": {
+        "endpoint": "/v1/models",
+        "interval": 60000,
+        "timeout": 5000,
+        "retries": 3
+      },
+      "headers": {
+        "HTTP-Referer": "https://github.com/pnocera/cproxy",
+        "X-Title": "cproxy"
+      },
+      "timeout": 30000,
+      "retryAttempts": 3,
+      "retryDelay": 1000,
+      "enabled": true
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic Claude",
+      "type": "anthropic",
+      "baseUrl": "https://api.anthropic.com",
+      "apiKey": "${ANTHROPIC_API_KEY}",
+      "models": [
+        "claude-3-opus-20240229",
+        "claude-3-sonnet-20240229",
+        "claude-3-haiku-20240307",
+        "claude-3-5-sonnet-20241022",
+        "claude-3-5-haiku-20241022"
+      ],
+      "capabilities": {
+        "streaming": true,
+        "tools": true,
+        "reasoning": false,
+        "multimodal": true,
+        "maxTokens": 4096,
+        "contextWindow": 200000
+      },
+      "rateLimits": {
+        "requestsPerMinute": 50,
+        "tokensPerMinute": 40000,
+        "requestsPerDay": 1000,
+        "tokensPerDay": 500000
+      },
+      "priority": 2,
+      "weight": 0.8,
+      "healthCheck": {
+        "endpoint": "/v1/messages",
+        "interval": 60000,
+        "timeout": 5000,
+        "retries": 3
+      },
+      "timeout": 30000,
+      "retryAttempts": 2,
+      "retryDelay": 2000,
+      "enabled": false
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "type": "openai",
+      "baseUrl": "https://api.openai.com",
+      "apiKey": "${OPENAI_API_KEY}",
+      "models": [
+        "gpt-4",
+        "gpt-4-turbo",
+        "gpt-4o",
+        "gpt-4o-mini",
+        "gpt-3.5-turbo"
+      ],
+      "capabilities": {
+        "streaming": true,
+        "tools": true,
+        "reasoning": false,
+        "multimodal": true,
+        "maxTokens": 4096,
+        "contextWindow": 128000
+      },
+      "rateLimits": {
+        "requestsPerMinute": 30,
+        "tokensPerMinute": 30000,
+        "requestsPerDay": 500,
+        "tokensPerDay": 300000
+      },
+      "priority": 3,
+      "weight": 0.6,
+      "healthCheck": {
+        "endpoint": "/v1/models",
+        "interval": 60000,
+        "timeout": 5000,
+        "retries": 3
+      },
+      "timeout": 30000,
+      "retryAttempts": 2,
+      "retryDelay": 1500,
+      "enabled": false
+    },
+    {
+      "id": "local-ollama",
+      "name": "Local Ollama",
+      "type": "local",
+      "baseUrl": "http://localhost:11434",
+      "models": [
+        "llama3",
+        "mistral",
+        "codellama",
+        "phi3"
+      ],
+      "capabilities": {
+        "streaming": true,
+        "tools": false,
+        "reasoning": false,
+        "multimodal": false,
+        "maxTokens": 2048,
+        "contextWindow": 4096
+      },
+      "rateLimits": {
+        "requestsPerMinute": 100,
+        "tokensPerMinute": 100000
+      },
+      "priority": 4,
+      "weight": 0.4,
+      "healthCheck": {
+        "endpoint": "/api/tags",
+        "interval": 30000,
+        "timeout": 3000,
+        "retries": 2
+      },
+      "timeout": 60000,
+      "retryAttempts": 1,
+      "retryDelay": 500,
+      "enabled": false
+    }
+  ],
+  "routing": {
+    "defaultProvider": "openrouter",
+    "fallbackProvider": "anthropic",
+    "loadBalancing": {
+      "strategy": "weighted",
+      "healthCheck": true,
+      "failover": true,
+      "maxRetries": 3,
+      "retryDelay": 1000
+    },
+    "rules": [
+      {
+        "id": "reasoning-models",
+        "name": "Route reasoning requests to OpenRouter",
+        "condition": {
+          "metadata": {
+            "reasoning": true
+          }
+        },
+        "target": {
+          "providerId": "openrouter",
+          "weight": 1.0
+        },
+        "enabled": true
+      },
+      {
+        "id": "claude-models",
+        "name": "Route Claude models to Anthropic",
+        "condition": {
+          "model": ["claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"]
+        },
+        "target": {
+          "providerId": "anthropic",
+          "fallback": ["openrouter"]
+        },
+        "enabled": false
+      },
+      {
+        "id": "openai-models",
+        "name": "Route OpenAI models to OpenAI",
+        "condition": {
+          "model": ["gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-3.5-turbo"]
+        },
+        "target": {
+          "providerId": "openai",
+          "fallback": ["openrouter"]
+        },
+        "enabled": false
+      },
+      {
+        "id": "local-development",
+        "name": "Route to local models in development",
+        "condition": {
+          "metadata": {
+            "environment": "development"
+          }
+        },
+        "target": {
+          "providerId": "local-ollama",
+          "fallback": ["openrouter"]
+        },
+        "enabled": false
+      }
+    ],
+    "modelMapping": {
+      "claude-3-opus": "anthropic/claude-3-opus",
+      "claude-3-sonnet": "anthropic/claude-3-sonnet",
+      "claude-3-haiku": "anthropic/claude-3-haiku",
+      "gpt-4": "openai/gpt-4",
+      "gpt-4-turbo": "openai/gpt-4-turbo",
+      "gemini-pro": "google/gemini-pro",
+      "default": "google/gemini-2.0-pro-exp-02-05:free"
+    }
+  },
+  "cache": {
+    "enabled": true,
+    "ttl": 300,
+    "maxSize": 1000,
+    "keyPrefix": "mcp-proxy:",
+    "storage": "memory",
+    "redis": {
+      "host": "localhost",
+      "port": 6379,
+      "password": "${REDIS_PASSWORD}",
+      "db": 0
+    }
+  },
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "requests": true,
+    "responses": false,
+    "performance": true,
+    "errors": true,
+    "file": {
+      "enabled": true,
+      "path": "./logs",
+      "maxSize": "10m",
+      "maxFiles": 5
+    }
+  },
+  "security": {
+    "rateLimiting": {
+      "enabled": true,
+      "requestsPerMinute": 100,
+      "skipSuccessfulRequests": false
+    },
+    "apiKeyValidation": {
+      "enabled": false,
+      "required": false
+    },
+    "cors": {
+      "enabled": true,
+      "origins": ["*"],
+      "methods": ["GET", "POST", "OPTIONS"],
+      "headers": ["Content-Type", "Authorization", "X-Requested-With"]
+    }
+  },
+  "monitoring": {
+    "enabled": true,
+    "metricsInterval": 30000,
+    "healthCheckInterval": 60000
+  }
+}
