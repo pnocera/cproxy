@@ -43,6 +43,72 @@ import {
   EXCLUDED_TOOLS
 } from './types.js';
 
+// ==================== CLI ARGUMENT PARSING ====================
+
+/**
+ * Parse command line arguments
+ */
+const parseCliArgs = (): { port?: number; help?: boolean } => {
+  const args = process.argv.slice(2);
+  const parsed: { port?: number; help?: boolean } = {};
+  
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    
+    if (arg === '--help' || arg === '-h') {
+      parsed.help = true;
+    } else if (arg === '--port' || arg === '-p') {
+      const portValue = args[i + 1];
+      if (portValue && !isNaN(parseInt(portValue, 10))) {
+        parsed.port = parseInt(portValue, 10);
+        i++; // Skip the next argument since we consumed it
+      } else {
+        console.error('Error: --port requires a valid number');
+        process.exit(1);
+      }
+    }
+  }
+  
+  return parsed;
+};
+
+/**
+ * Display help message
+ */
+const showHelp = (): void => {
+  console.log(`
+cproxy - TypeScript Proxy Server
+A simple proxy server with streaming support and API transformation capabilities.
+
+Usage: npx @pnocera/cproxy [options]
+
+Options:
+  -p, --port <number>    Port to run the server on (default: 3000)
+  -h, --help             Show this help message
+
+Environment Variables:
+  PORT                   Port to run the server on
+  ANTHROPIC_PROXY_BASE_URL   Base URL for the proxy target
+  OPENROUTER_API_KEY     API key for OpenRouter
+  REASONING_MODEL        Model to use for reasoning tasks
+  COMPLETION_MODEL       Model to use for completion tasks
+  DEBUG                  Enable debug logging
+
+Examples:
+  npx @pnocera/cproxy --port 8080
+  PORT=3001 npx @pnocera/cproxy
+  DEBUG=1 npx @pnocera/cproxy --port 3001
+`);
+};
+
+const cliArgs = parseCliArgs();
+
+// Show help and exit if requested
+if (cliArgs.help) {
+  showHelp();
+  process.exit(0);
+}
+
 // ==================== CONFIGURATION ====================
 
 const env = process.env;
@@ -57,6 +123,9 @@ const config: ProxyConfig = {
     completion: env['COMPLETION_MODEL'] || DEFAULT_MODEL,
   }
 };
+
+// Determine port: CLI arg > ENV var > DEFAULT
+const serverPort = cliArgs.port || parseInt(env['PORT'] || DEFAULT_PORT.toString(), 10);
 
 // ==================== FASTIFY INITIALIZATION ====================
 
@@ -529,9 +598,8 @@ fastify.post<{ Body: AnthropicRequest }>('/v1/messages', async (request: ProxyRe
 
 const start = async (): Promise<void> => {
   try {
-    const port = parseInt(env['PORT'] || DEFAULT_PORT.toString(), 10);
-    await fastify.listen({ port });
-    console.log(`🚀 cproxy server started on port ${port}`);
+    await fastify.listen({ port: serverPort });
+    console.log(`🚀 cproxy server started on port ${serverPort}`);
     console.log(`📡 Proxying to: ${config.baseUrl}`);
     console.log(`🔑 API Key Required: ${config.requiresApiKey}`);
   } catch (err) {
